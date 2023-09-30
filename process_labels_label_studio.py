@@ -155,4 +155,4 @@ if __name__ == '__main__':
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
     process_stage1(config)
-    process_stage2(config)
+    # process_stage2(config)
