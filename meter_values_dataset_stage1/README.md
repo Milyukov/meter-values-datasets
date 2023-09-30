@@ -1,5 +1,7 @@
-TODO(meter_values_dataset_stage1): Markdown description of that will appear on the catalog page.
-Description is **formatted** as markdown.
+# Инструкция по генерации датасета для обучения первой стадии (локализация области показаний счетчика)
 
-It should also contain any processing which has been applied (if any),
-(e.g. corrupted example skipped, images cropped,...):
+Предполагается, что среда настроена в соотвествии с [инструкцией](./README.md) в корне проекта.
+1. Размеченные данные должны быть скачаны в одну папку и содержать файл labels.json с результатами разметки в Label-studio.
+2. Нужно окрыть консоль в папке meter_values_dataset_stage1 и выполнить команду:<br>
+    <code>ulimit -n 50000</code><br>
+    <code>tfds build --manual_dir=path/to/dir</code>

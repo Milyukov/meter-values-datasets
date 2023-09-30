@@ -8,7 +8,17 @@ import sys
 sys.path.append('..')
 
 import process_labels_label_studio
+from dataclasses import dataclass, field
 
+@dataclass
+class MyDatasetConfig(tfds.core.BuilderConfig):
+  width: int = 0
+  height: int = 0
+  partition: dict = field(default_factory= lambda: {
+        'train': 0.8,
+        'test': 0.1,
+        'val': 0.1,
+    })
 
 class Builder(tfds.core.GeneratorBasedBuilder):
   """DatasetBuilder for meter_values_dataset_stage1 dataset."""
@@ -20,6 +30,11 @@ class Builder(tfds.core.GeneratorBasedBuilder):
   RELEASE_NOTES = {
       '1.0.0': 'Initial release.',
   }
+  BUILDER_CONFIGS = [
+      # `name` (and optionally `description`) are required for each config
+      MyDatasetConfig(name='Default', width=1024, height=1024, 
+                      partition={'train': 0.8, 'test': 0.1, 'val': 0.1}),
+  ]
 
   def _info(self) -> tfds.core.DatasetInfo:
     """Returns the dataset metadata."""
@@ -52,17 +67,18 @@ class Builder(tfds.core.GeneratorBasedBuilder):
     #path = dl_manager.extract(archive_path)
 
     # TODO(MeterValuesDataset): Returns the Dict[split names, Iterator[Key, Example]]
-    self.width = 1024
-    self.height = 1024
-    partition_train = 0.8
-    partition_val = 0.1
-    partition_test = 0.1
+    width = self.builder_config.width
+    height = self.builder_config.height
+    partition_train = self.builder_config.partition['train']
+    partition_val = self.builder_config.partition['val']
+    partition_test = self.builder_config.partition['test']
     images_info = process_labels_label_studio.get_images_info(path / 'labels.json')
+    images_info = [im_info for im_info in images_info if len(im_info['annotations']) > 0] 
     max_samples_train = np.floor(len(images_info) * partition_train)
     max_samples_val = np.floor(len(images_info) * partition_val)
     max_samples_test = np.floor(len(images_info) * partition_test)
     self.iter = process_labels_label_studio.generate_examples_stage1(
-      images_info, path, self.width, self.height)
+      images_info, path, width, height)
     return {
         'train': self._generate_examples(max_samples_train),
         'validation': self._generate_examples(max_samples_val),
@@ -78,6 +94,8 @@ class Builder(tfds.core.GeneratorBasedBuilder):
       'analog_illegible': 2,
       'digital_illegible': 3
     }
+    width = self.builder_config.width
+    height = self.builder_config.height
 
     index = 0
     while index < max_samples:
@@ -89,18 +107,18 @@ class Builder(tfds.core.GeneratorBasedBuilder):
         return
       
       final_bbox = np.array([
-        bbox[1] / self.height,
-        bbox[0] / self.width,
-        (bbox[1] + bbox[3]) / self.height,
-        (bbox[0] + bbox[2]) / self.width,
-        keypoints[0][1] / self.height,
-        keypoints[0][0] / self.width,
-        keypoints[1][1] / self.height,
-        keypoints[1][0] / self.width,
-        keypoints[2][1] / self.height,
-        keypoints[2][0] / self.width,
-        keypoints[3][1] / self.height,
-        keypoints[3][0] / self.width,
+        bbox[1] / height,
+        bbox[0] / width,
+        (bbox[1] + bbox[3]) / height,
+        (bbox[0] + bbox[2]) / width,
+        keypoints[0][1] / height,
+        keypoints[0][0] / width,
+        keypoints[1][1] / height,
+        keypoints[1][0] / width,
+        keypoints[2][1] / height,
+        keypoints[2][0] / width,
+        keypoints[3][1] / height,
+        keypoints[3][0] / width,
       ], dtype=np.float32)
 
       yield index, {
@@ -109,7 +127,7 @@ class Builder(tfds.core.GeneratorBasedBuilder):
           'image/id': index,
           'objects': {
             'area': [bbox[2] * bbox[3]],
-            'bbox': [final_bbox],#[bbox_feature],
+            'bbox': [final_bbox],
             'id': [0],
             'is_crowd': [False],
             'label': [str2int[label[0].lower()]]
