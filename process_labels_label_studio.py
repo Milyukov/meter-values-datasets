@@ -6,6 +6,7 @@ import os
 import matplotlib.pyplot as plt
 from utils import *
 import yaml
+import tqdm
 
 def get_images_info(input_path):
     images_info = []
@@ -96,7 +97,8 @@ def process_stage1(config):
         os.mkdir(config['stage1']['path_to_output'])
     # generate dataset stage 2
     images_info = get_images_info(input_path)
-    for im_resized, labels, bbox, keypoints, image_filename in generate_examples_stage1(images_info, images_path, width, height):
+    for im_resized, labels, bbox, keypoints, image_filename in tqdm.tqdm(
+        generate_examples_stage1(images_info, images_path, width, height)):
         # generate image for stage 2
         im_dst_eq = extract_rectangle_area(im_resized, bbox, keypoints)
         # save generated image
@@ -124,7 +126,8 @@ def process_stage2(config):
         os.mkdir(config['stage2']['path_to_output'])
     # generate dataset stage 2
     images_info = get_images_info(input_path)
-    for im_resized, labels, bboxes, image_filename in generate_examples_stage2(images_info, images_path, width, height):
+    for im_resized, labels, bboxes, image_filename in tqdm.tqdm(
+        generate_examples_stage2(images_info, images_path, width, height)):
         # save generated image
         index += 1
         cv2.imwrite(os.path.join(config['stage2']['path_to_output'], f'resized_{image_filename}'), im_resized)
