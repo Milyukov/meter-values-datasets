@@ -48,7 +48,9 @@ def generate_examples_stage1(images_info, images_path, width, height):
                         keypoints.append([
                             x * w / 100, 
                             y * h / 100])
-        if len(keypoints) == 0:
+        if len(keypoints) != 4:
+            if len(keypoints) > 4:
+                print('More than 4 points were labeled!')
             continue
 
         im_resized, bbox, keypoints = process_keypoints(
