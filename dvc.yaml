@@ -1,0 +1,10 @@
+stages:
+  generate_images_stage2:
+    cmd: python process_labels_label_studio.py -c config/dataset_generation_ls.yaml
+    deps:
+    - config/dataset_generation_ls.yaml
+    - meter_values_dataset_stage1/stage1
+    - process_labels_label_studio.py
+    - utils.py
+    outs:
+    - meter_values_dataset_stage2/stage2
