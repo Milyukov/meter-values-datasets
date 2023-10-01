@@ -1,0 +1,28 @@
+schema: '2.0'
+stages:
+  generate_images_stage2:
+    cmd: python process_labels_label_studio.py -c config/dataset_generation_ls.yaml
+    deps:
+    - path: config/dataset_generation_ls.yaml
+      hash: md5
+      md5: 8351c92890584c335b3b694a6501aef2
+      size: 463
+    - path: meter_values_dataset_stage1/stage1
+      hash: md5
+      md5: dff09bbf7da4663570e65d710fd61854.dir
+      size: 8567181804
+      nfiles: 41401
+    - path: process_labels_label_studio.py
+      hash: md5
+      md5: 41423d69f861aa454e1bde692945ee4a
+      size: 6510
+    - path: utils.py
+      hash: md5
+      md5: c5ffc9c2975c7d55f0169969a8a24129
+      size: 6842
+    outs:
+    - path: meter_values_dataset_stage2/stage2
+      hash: md5
+      md5: 1038e84178d8e93995efbe94b29b44a1.dir
+      size: 926690341
+      nfiles: 21894
