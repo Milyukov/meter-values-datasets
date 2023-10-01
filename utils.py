@@ -101,7 +101,6 @@ def process_bboxes(im, bboxes, width, height):
     # resize image and bboxes
     im_resized, bboxes_resized = resize_image_bboxes(im, bboxes, width, height)
     return im_resized, bboxes_resized 
-    
 
 def extract_rectangle_area(im_resized, bbox, keypoints):
     # evaluate homography transform to warp and crop image inside keypoints
@@ -110,29 +109,52 @@ def extract_rectangle_area(im_resized, bbox, keypoints):
     y_min = np.min(keypoints[:, 1])
     keypoints[:, 0] -= x_min
     keypoints[:, 1] -= y_min
-    width = bbox[2]
-    height = bbox[3]
+    width = int(np.sqrt((keypoints[0][0] - keypoints[1][0]) ** 2 + (keypoints[0][1] - keypoints[1][1]) ** 2))
+    height = int(np.sqrt((keypoints[0][0] - keypoints[3][0]) ** 2 + (keypoints[0][1] - keypoints[3][1]) ** 2))
     keypoints_planar = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.int32)
-    h, status = cv2.findHomography(keypoints.astype(np.int32), keypoints_planar)
 
-    # enhance area
+    h, status = cv2.findHomography(keypoints.astype(np.int32), keypoints_planar)
+    # for extended area
+    h_inv, status = cv2.findHomography(keypoints_planar, keypoints.astype(np.int32))
+
+    # extend area
     keypoints_planar_extended = keypoints_planar + np.array(
         [[-height//2, -2 * height//3], 
-         [height//2, -2 * height//3], 
-         [height//2, 2 * height//3], 
-         [-height//2, 2 * height//3]])
+        [height//2, -2 * height//3], 
+        [height//2, 2 * height//3], 
+        [-height//2, 2 * height//3]])
     # use inverse homography to choose new points on the original image
     keypoints_planar_extended = keypoints_planar_extended.reshape(-1,1,2).astype(np.float32)
-    keypoints_extended = cv2.perspectiveTransform(keypoints_planar_extended, h)
+    keypoints_extended = cv2.perspectiveTransform(keypoints_planar_extended, h_inv)
     keypoints_extended = keypoints_extended.reshape(-1, 2)
     keypoints_extended[:, 0] += x_min
     keypoints_extended[:, 1] += y_min
+
     # get bbox
     bbox = cv2.boundingRect(keypoints_extended.astype(np.int32))
-    width = bbox[2]
-    height = bbox[3]
+    width = int(np.sqrt((keypoints_extended[0][0] - keypoints_extended[1][0]) ** 2 + (keypoints_extended[0][1] - keypoints_extended[1][1]) ** 2))
+    height = int(np.sqrt((keypoints_extended[1][0] - keypoints_extended[2][0]) ** 2 + (keypoints_extended[1][1] - keypoints_extended[2][1]) ** 2))
+
+    # compute new homography matrix for extended area
+    x_min = np.min(keypoints_extended[:, 0])
+    y_min = np.min(keypoints_extended[:, 1])
+    keypoints_extended[:, 0] -= x_min
+    keypoints_extended[:, 1] -= y_min
+    keypoints_planar = np.array([[0, 0], [width, 0], [width, height], [0, height]], dtype=np.int32)
+    h, status = cv2.findHomography(keypoints_extended.astype(np.int32), keypoints_planar)
+    keypoints_extended[:, 0] += x_min
+    keypoints_extended[:, 1] += y_min
+
     # warp image area
-    im_dst = cv2.warpPerspective(im_resized[bbox[1]:bbox[1] + bbox[3], bbox[0]:bbox[0] + bbox[2]], h, (width, height))
+    # extend image if bbox is out of image's plane
+    top = 0 if bbox[1] > 0 else -bbox[1]
+    bottom = 0 if bbox[3] < im_resized.shape[0] else bbox[3] - im_resized.shape[0]
+    left = 0 if bbox[0] > 0 else -bbox[0]
+    right = 0 if bbox[2] < im_resized.shape[1] else bbox[2] - im_resized.shape[1]
+    im_resized = cv2.copyMakeBorder(im_resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0)
+
+    im_dst = cv2.warpPerspective(im_resized[bbox[1] + top:bbox[1] + top + bbox[3], 
+                                            bbox[0] + left:bbox[0] + left + bbox[2]], h, (width, height))
     im_dst = cv2.cvtColor(im_dst, cv2.COLOR_BGR2GRAY)
     im_dst_eq = cv2.equalizeHist(im_dst)
     return im_dst_eq
