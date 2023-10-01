@@ -102,6 +102,8 @@ def process_stage1(config):
     for im_resized, labels, bbox, keypoints, image_filename in tqdm.tqdm(
         generate_examples_stage1(images_info, images_path, width, height)):
         # generate image for stage 2
+        if 'elligible' in labels[0].lower():
+            continue 
         im_dst_eq = extract_rectangle_area(im_resized, bbox, keypoints)
         # save generated image
         index += 1
