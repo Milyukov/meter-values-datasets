@@ -155,6 +155,6 @@ def extract_rectangle_area(im_resized, bbox, keypoints):
 
     im_dst = cv2.warpPerspective(im_resized[bbox[1] + top:bbox[1] + top + bbox[3], 
                                             bbox[0] + left:bbox[0] + left + bbox[2]], h, (width, height))
-    im_dst = cv2.cvtColor(im_dst, cv2.COLOR_BGR2GRAY)
+    #im_dst = cv2.cvtColor(im_dst, cv2.COLOR_BGR2GRAY)
     im_dst_eq = cv2.equalizeHist(im_dst)
     return im_dst_eq
