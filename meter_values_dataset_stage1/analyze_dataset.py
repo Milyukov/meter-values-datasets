@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import tensorflow_datasets as tfds
+import numpy as np
 
 if __name__ == '__main__':
     (train_dataset, val_dataset, test_dataset), dataset_info = tfds.load(
