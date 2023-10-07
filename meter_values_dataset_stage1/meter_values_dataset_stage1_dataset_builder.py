@@ -100,11 +100,11 @@ class Builder(tfds.core.GeneratorBasedBuilder):
     index = 0
     while index < max_samples:
       
-      index += 1
       try:
         im_resized, label, bbox, keypoints, image_filename = next(self.iter)
       except StopIteration:
         return
+      index += 1
       
       final_bbox = np.array([
         bbox[1] / height,
