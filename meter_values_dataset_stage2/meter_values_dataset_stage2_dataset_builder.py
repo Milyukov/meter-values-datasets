@@ -48,7 +48,7 @@ class Builder(tfds.core.GeneratorBasedBuilder):
                 'bbox': tfds.features.BBoxFeature(),
                 'id': tf.int64,
                 'is_crowd': tf.bool,
-                'label': tfds.features.ClassLabel(num_classes=15),
+                'label': tfds.features.ClassLabel(num_classes=17),
             }),
         }),
         # If there's a common (input, target) tuple from the
@@ -101,8 +101,8 @@ class Builder(tfds.core.GeneratorBasedBuilder):
       '9': 9,
       'r': 10,
       't': 11,
-      '_': 12,
-      'point': 13,
+      'm': 12,
+      '_': 13,
       'floatp': 14,
       'colon': 15,
       'arrow': 16
