@@ -58,7 +58,7 @@ def generate_examples_stage1(images_info, images_path, width, height):
         
         yield im_resized, labels, bbox, keypoints, image_filename
 
-def generate_examples_stage2(images_info, images_path, width, height):
+def generate_examples_stage2(images_info, images_path, width=None, height=None):
     # for image
     for image_info in images_info:
         # read image
@@ -92,7 +92,10 @@ def generate_examples_stage2(images_info, images_path, width, height):
                     bboxes.append([x, y, bbox_w, bbox_h])
         if len(bboxes) == 0 or len(labels) == 0:
             continue
-
+        
+        if width is None or height is None:
+            yield im, labels, bboxes, image_filename
+            
         im_resized, bboxes = process_bboxes(
             im, bboxes, width, height)
         

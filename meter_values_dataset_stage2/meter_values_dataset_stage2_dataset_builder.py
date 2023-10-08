@@ -45,19 +45,28 @@ class Builder(tfds.core.GeneratorBasedBuilder):
   def _split_generators(self, dl_manager: tfds.download.DownloadManager):
     """Returns SplitGenerators."""
     # TODO(meter_values_dataset_stage2): Downloads the data and defines the splits
-    # data_path is a pathlib-like `Path('<manual_dir>/data.zip')`
-    archive_path = dl_manager.manual_dir / 'data.zip'
-    print(f'Archive path: {archive_path}')
+    path = dl_manager.manual_dir #/ 'data.zip'
     # Extract the manually downloaded `data.zip`
-    path = dl_manager.extract(archive_path)
+    #path = dl_manager.extract(archive_path)
 
-    # TODO(meter_values_dataset_stage2): Returns the Dict[split names, Iterator[Key, Example]]
+    # TODO(MeterValuesDataset): Returns the Dict[split names, Iterator[Key, Example]]
+    partition_train = self.builder_config.partition['train']
+    partition_val = self.builder_config.partition['val']
+    partition_test = self.builder_config.partition['test']
+    images_info = process_labels_label_studio.get_images_info(path / 'labels.json')
+    images_info = [im_info for im_info in images_info if len(im_info['annotations']) > 0] 
+    max_samples_train = np.floor(len(images_info) * partition_train)
+    max_samples_val = np.floor(len(images_info) * partition_val)
+    max_samples_test = np.floor(len(images_info) * partition_test)
+    self.iter = process_labels_label_studio.generate_examples_stage2(
+      images_info, path)
     return {
-        'train': self._generate_examples(path, 'train'),
-        'test': self._generate_examples(path, 'test'),
+        'train': self._generate_examples(max_samples_train),
+        'validation': self._generate_examples(max_samples_val),
+        'test': self._generate_examples(max_samples_test),
     }
 
-  def _generate_examples(self, path, dataset_name):
+  def _generate_examples(self, max_samples):
     """Yields examples."""
     # TODO(meter_values_dataset_stage2): Yields (key, example) tuples from the dataset
     partition = 0.5
@@ -81,26 +90,18 @@ class Builder(tfds.core.GeneratorBasedBuilder):
     }
 
     index = 0
-    width = 256
-    height = 256
-    images_info = process_labels_label_studio.get_images_info(path / 'labels.json')
-    max_samples = np.floor(len(images_info) * partition)
-    # TODO: develop parsing of stage 2
-    for im_resized, labels, bboxes, image_filename in process_labels_label_studio.generate_examples_stage2(
-      images_info, path, width, height):
-
-      print(f'Processing {image_filename}')
-
+    while index < max_samples:
+      
+      try:
+        im, labels, bboxes, image_filename = next(self.iter)
+      except StopIteration:
+        return
       index += 1
-
-      if dataset_name == 'train' and index > max_samples:
-        break
-      elif dataset_name == 'test' and index <= max_samples:
-        continue
       
       bbox_features = []
       label_features = []
       areas = []
+      height, width, _ = im.shape
       for bbox, label in zip(bboxes, labels):
         bbox_features.append(tfds.features.BBox(
           ymin=bbox[1] / height,
@@ -112,7 +113,7 @@ class Builder(tfds.core.GeneratorBasedBuilder):
         label_features.append(str2int[label.lower()])
       
       yield index, {
-          'image': im_resized.astype(np.uint8),
+          'image': im.astype(np.uint8),
           'image/filename': image_filename,
           'image/id': index,
           'objects': {
