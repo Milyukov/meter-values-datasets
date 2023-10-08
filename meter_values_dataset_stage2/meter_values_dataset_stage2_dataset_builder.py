@@ -103,7 +103,9 @@ class Builder(tfds.core.GeneratorBasedBuilder):
       't': 11,
       '_': 12,
       'point': 13,
-      'floatp': 14
+      'floatp': 14,
+      'colon': 15,
+      'arrow': 16
     }
 
     index = 0
