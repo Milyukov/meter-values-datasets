@@ -65,15 +65,18 @@ def generate_examples_stage2(images_info, images_path, width=None, height=None):
         if 'file_upload' in image_info:
             image_filename = image_info['file_upload'].split('-')[-1]
         else:
-            prefix = 's3://datasets-counters/'
+            prefix = 's3://stage2/'
             image_filename = image_info['data']['image'][len(prefix):]
         image_path = os.path.join(images_path, image_filename)
+        #print(image_path)
         # to deal with Unicode:
         if not os.path.exists(image_path):
             continue
+        print('WE ARE HERE 1')
         im = cv2.imdecode(np.fromfile(image_path, np.uint8), cv2.IMREAD_UNCHANGED)
         if im is None:
             continue
+        print('WE ARE HERE 2')
         # read keypoints
         annotations = image_info['annotations']
         bboxes = []

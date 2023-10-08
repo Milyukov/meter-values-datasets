@@ -70,12 +70,13 @@ class Builder(tfds.core.GeneratorBasedBuilder):
     partition_val = self.builder_config.partition['val']
     partition_test = self.builder_config.partition['test']
     images_info = process_labels_label_studio.get_images_info(path / 'labels.json')
-    images_info = [im_info for im_info in images_info if len(im_info['annotations']) > 0] 
+    images_info = [im_info for im_info in images_info if len(im_info['annotations']) > 0]
+    print(f'Number of labeled samples: {len(images_info)}')
     max_samples_train = np.floor(len(images_info) * partition_train)
     max_samples_val = np.floor(len(images_info) * partition_val)
     max_samples_test = np.floor(len(images_info) * partition_test)
     self.iter = process_labels_label_studio.generate_examples_stage2(
-      images_info, path)
+      images_info, path, self.builder_config.width, self.builder_config.height)
     return {
         'train': self._generate_examples(max_samples_train),
         'validation': self._generate_examples(max_samples_val),
