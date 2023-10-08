@@ -1,0 +1,28 @@
+schema: '2.0'
+stages:
+  generate_train_stage2:
+    cmd: ulimit -n 50000 && tfds build --manual_dir=./stage2 --data_dir ./
+    deps:
+    - path: ../process_labels_label_studio.py
+      hash: md5
+      md5: 9e4c38d44fac2baa1bffb2fbe0c13570
+      size: 7002
+    - path: ../utils.py
+      hash: md5
+      md5: 67693a288dbd80d9830e2e9aa1f8f295
+      size: 6841
+    - path: meter_values_dataset_stage2_dataset_builder.py
+      hash: md5
+      md5: dbe10555e31aa66bf1a19c8a294ccf01
+      size: 4875
+    - path: stage2
+      hash: md5
+      md5: 359d0db648a0e6a8e8b2fbd658b7ec61.dir
+      size: 755607583
+      nfiles: 21895
+    outs:
+    - path: meter_values_dataset_stage2/Default/1.0.0
+      hash: md5
+      md5: e8e4d03c73ac387fe37f50d896ed1924.dir
+      size: 142701138
+      nfiles: 5
