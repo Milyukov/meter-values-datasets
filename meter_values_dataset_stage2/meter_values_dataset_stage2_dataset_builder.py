@@ -6,6 +6,17 @@ import numpy as np
 
 import process_labels_label_studio
 
+from dataclasses import dataclass, field
+
+@dataclass
+class MyDatasetConfig(tfds.core.BuilderConfig):
+  width: int = 0
+  height: int = 0
+  partition: dict = field(default_factory= lambda: {
+        'train': 0.8,
+        'test': 0.1,
+        'val': 0.1,
+    })
 
 class Builder(tfds.core.GeneratorBasedBuilder):
   """DatasetBuilder for meter_values_dataset_stage2 dataset."""
@@ -18,6 +29,11 @@ class Builder(tfds.core.GeneratorBasedBuilder):
   RELEASE_NOTES = {
       '1.0.0': 'Initial release.',
   }
+  BUILDER_CONFIGS = [
+      # `name` (and optionally `description`) are required for each config
+      MyDatasetConfig(name='Default', width=256, height=256, 
+                      partition={'train': 0.8, 'test': 0.1, 'val': 0.1}),
+  ]
 
   def _info(self) -> tfds.core.DatasetInfo:
     """Returns the dataset metadata."""
