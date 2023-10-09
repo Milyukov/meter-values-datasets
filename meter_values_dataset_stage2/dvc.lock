@@ -17,12 +17,12 @@ stages:
       size: 4875
     - path: stage2
       hash: md5
-      md5: 359d0db648a0e6a8e8b2fbd658b7ec61.dir
-      size: 755607583
+      md5: c919f9b63451c289734758514acd91bd.dir
+      size: 757797015
       nfiles: 21895
     outs:
     - path: meter_values_dataset_stage2/Default/1.0.0
       hash: md5
-      md5: e8e4d03c73ac387fe37f50d896ed1924.dir
-      size: 142701138
-      nfiles: 5
+      md5: 14ded47f983047ea378d93ec1e585d63.dir
+      size: 170378994
+      nfiles: 6
