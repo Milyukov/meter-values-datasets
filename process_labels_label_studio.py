@@ -58,6 +58,26 @@ def generate_examples_stage1(images_info, images_path, width, height):
         
         yield im_resized, labels, bbox, keypoints, image_filename
 
+def get_examples_count(images_info, images_path):
+    count = 0
+    # for image
+    for image_info in images_info:
+        # read image
+        if 'file_upload' in image_info:
+            image_filename = image_info['file_upload'].split('-')[-1]
+        else:
+            prefix = 's3://stage2/'
+            image_filename = image_info['data']['image'][len(prefix):]
+        image_path = os.path.join(images_path, image_filename)
+        # to deal with Unicode:
+        if not os.path.exists(image_path):
+            continue
+        annotations = image_info['annotations']
+        if len(annotations) == 0:
+            continue
+        count += 1
+    return count
+
 def generate_examples_stage2(images_info, images_path, width=None, height=None):
     # for image
     for image_info in images_info:
