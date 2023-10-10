@@ -1,9 +1,9 @@
 stage1:
-  path_to_ls_output: /home/gleb/Projects/counters-datasets/meter_values_dataset_stage1/stage1/labels.json
-  path_to_images: /home/gleb/Projects/counters-datasets/meter_values_dataset_stage1/stage1
+  path_to_ls_output: ./meter_values_dataset_stage1/stage1/labels.json
+  path_to_images: ./meter_values_dataset_stage1/stage1
   height: 1028
   width: 1028
-  path_to_output: /home/gleb/Projects/counters-datasets/meter_values_dataset_stage2/stage2
+  path_to_output: ./meter_values_dataset_stage2/stage2
   visualize: False
 stage2:
   path_to_ls_output: ./meter_values_dataset_stage2/stage2/labels.json
