@@ -5,24 +5,24 @@ stages:
     deps:
     - path: ../process_labels_label_studio.py
       hash: md5
-      md5: 9e4c38d44fac2baa1bffb2fbe0c13570
-      size: 7002
+      md5: 7613980d38d4db8fc34efc676b4e1512
+      size: 7722
     - path: ../utils.py
       hash: md5
       md5: 67693a288dbd80d9830e2e9aa1f8f295
       size: 6841
     - path: meter_values_dataset_stage2_dataset_builder.py
       hash: md5
-      md5: dbe10555e31aa66bf1a19c8a294ccf01
-      size: 4875
+      md5: 46bed4f50a2adc23422d30af4e1cd6f6
+      size: 4974
     - path: stage2
       hash: md5
-      md5: c919f9b63451c289734758514acd91bd.dir
-      size: 757797015
-      nfiles: 21895
+      md5: b181949227a6f6eced298c6dde5f3d3d.dir
+      size: 356251324
+      nfiles: 14199
     outs:
     - path: meter_values_dataset_stage2/Default/1.0.0
       hash: md5
-      md5: 14ded47f983047ea378d93ec1e585d63.dir
-      size: 170378994
-      nfiles: 6
+      md5: bbcb93ff9d5e1c6526d33df6be922129.dir
+      size: 106505709
+      nfiles: 5
