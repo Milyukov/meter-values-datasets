@@ -31,7 +31,7 @@ class Builder(tfds.core.GeneratorBasedBuilder):
   }
   BUILDER_CONFIGS = [
       # `name` (and optionally `description`) are required for each config
-      MyDatasetConfig(name='Default', width=256, height=256, 
+      MyDatasetConfig(name='Default', width=512, height=512, 
                       partition={'train': 0.8, 'test': 0.1, 'val': 0.1}),
   ]
 
@@ -40,7 +40,7 @@ class Builder(tfds.core.GeneratorBasedBuilder):
     # TODO(meter_values_dataset_stage2): Specifies the tfds.core.DatasetInfo object
     return self.dataset_info_from_configs(
         features=tfds.features.FeaturesDict({
-            'image': tfds.features.Image(shape=(256, 256, 3), dtype=tf.uint8),
+            'image': tfds.features.Image(shape=(self.builder_config.height, self.builder_config.width, 3), dtype=tf.uint8),
             'image/filename': tfds.features.Text(),
             'image/id': tf.int64,
             'objects': tfds.features.Sequence({
