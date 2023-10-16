@@ -8,10 +8,14 @@ from utils import *
 import yaml
 import tqdm
 
-def get_images_info(input_path):
+from random import shuffle
+
+def get_images_info(input_path, shuffle_list=True):
     images_info = []
     with open(input_path) as f:
         images_info = json.load(f)
+    if shuffle_list:
+        shuffle(images_info)
     return images_info
 
 def generate_examples_stage1(images_info, images_path, width, height):
@@ -75,6 +79,9 @@ def get_examples_count(images_info, images_path):
         annotations = image_info['annotations']
         if len(annotations) == 0:
             continue
+        im_id = image_info['id']
+        #if im_id > 126887 and im_id < 132287:
+        #    continue
         count += 1
     return count
 
@@ -96,6 +103,9 @@ def generate_examples_stage2(images_info, images_path, width=None, height=None):
             continue
         # read keypoints
         annotations = image_info['annotations']
+        im_id = image_info['id']
+        #if im_id > 126887 and im_id < 132287:
+        #    continue
         bboxes = []
         labels = []
         for field in annotations:
@@ -111,6 +121,9 @@ def generate_examples_stage2(images_info, images_path, width=None, height=None):
                     bbox_h = values['height'] * h / 100
                     bboxes.append([x, y, bbox_w, bbox_h])
         if len(bboxes) == 0 or len(labels) == 0:
+            continue
+
+        if 'digital' in labels[0].lower():
             continue
         
         if width is None or height is None:

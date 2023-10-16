@@ -31,7 +31,7 @@ class Builder(tfds.core.GeneratorBasedBuilder):
   }
   BUILDER_CONFIGS = [
       # `name` (and optionally `description`) are required for each config
-      MyDatasetConfig(name='Default', width=512, height=512, 
+      MyDatasetConfig(name='Default', width=800, height=800, 
                       partition={'train': 0.8, 'test': 0.1, 'val': 0.1}),
   ]
 

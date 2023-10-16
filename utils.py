@@ -151,7 +151,7 @@ def extract_rectangle_area(im_resized, bbox, keypoints):
     bottom = 0 if bbox[3] < im_resized.shape[0] else bbox[3] - im_resized.shape[0]
     left = 0 if bbox[0] > 0 else -bbox[0]
     right = 0 if bbox[2] < im_resized.shape[1] else bbox[2] - im_resized.shape[1]
-    im_resized = cv2.copyMakeBorder(im_resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0)
+    im_resized = cv2.copyMakeBorder(im_resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=np.mean(im_resized))
 
     im_dst = cv2.warpPerspective(im_resized[bbox[1] + top:bbox[1] + top + bbox[3], 
                                             bbox[0] + left:bbox[0] + left + bbox[2]], h, (width, height))
