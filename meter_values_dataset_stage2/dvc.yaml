@@ -1,10 +1,11 @@
 stages:
   generate_train_stage2:
-    cmd: ulimit -n 50000 && tfds build --manual_dir=./stage2 --data_dir ./ 
+    cmd: ulimit -n 50000 && tfds build --manual_dir=./stage2/ --data_dir ./ 
     deps:
     - ../process_labels_label_studio.py
     - ../utils.py
     - meter_values_dataset_stage2_dataset_builder.py
     - stage2
+    - labels.json
     outs:
     - meter_values_dataset_stage2/Default/1.0.0

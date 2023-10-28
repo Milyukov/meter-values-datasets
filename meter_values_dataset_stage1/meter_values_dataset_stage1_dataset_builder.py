@@ -62,7 +62,8 @@ class Builder(tfds.core.GeneratorBasedBuilder):
   def _split_generators(self, dl_manager: tfds.download.DownloadManager):
     # TODO(meter_values_dataset): Downloads the data and defines the splits
     # data_path is a pathlib-like `Path('<manual_dir>/data.zip')`
-    path = dl_manager.manual_dir #/ 'data.zip'
+    path_to_images = dl_manager.manual_dir
+    path_to_labels = path_to_images / '..'
     # Extract the manually downloaded `data.zip`
     #path = dl_manager.extract(archive_path)
 
@@ -72,13 +73,16 @@ class Builder(tfds.core.GeneratorBasedBuilder):
     partition_train = self.builder_config.partition['train']
     partition_val = self.builder_config.partition['val']
     partition_test = self.builder_config.partition['test']
-    images_info = process_labels_label_studio.get_images_info(path / 'labels.json')
-    images_info = [im_info for im_info in images_info if len(im_info['annotations']) > 0] 
-    max_samples_train = np.floor(len(images_info) * partition_train)
-    max_samples_val = np.floor(len(images_info) * partition_val)
-    max_samples_test = np.floor(len(images_info) * partition_test)
+    images_info = process_labels_label_studio.get_images_info(path_to_labels / 'labels.json')
+    images_info = [im_info for im_info in images_info if len(im_info['annotations']) > 0]
+    number_of_examples = process_labels_label_studio.get_examples_count_stage1(
+      images_info, path_to_images)
+    print(f'Number of labeled samples: {number_of_examples}')
+    max_samples_train = np.floor(number_of_examples * partition_train)
+    max_samples_val = np.floor(number_of_examples * partition_val)
+    max_samples_test = np.floor(number_of_examples * partition_test)
     self.iter = process_labels_label_studio.generate_examples_stage1(
-      images_info, path, width, height)
+      images_info, path_to_images, width, height)
     return {
         'train': self._generate_examples(max_samples_train),
         'validation': self._generate_examples(max_samples_val),

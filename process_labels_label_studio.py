@@ -62,7 +62,27 @@ def generate_examples_stage1(images_info, images_path, width, height):
         
         yield im_resized, labels, bbox, keypoints, image_filename
 
-def get_examples_count(images_info, images_path):
+def get_examples_count_stage1(images_info, images_path):
+    count = 0
+    # for image
+    for image_info in images_info:
+        # read image
+        if 'file_upload' in image_info:
+            image_filename = image_info['file_upload'].split('-')[-1]
+        else:
+            prefix = 's3://datasets-counters/'
+            image_filename = image_info['data']['image'][len(prefix):]
+        image_path = os.path.join(images_path, image_filename)
+        # to deal with Unicode:
+        if not os.path.exists(image_path):
+            continue
+        annotations = image_info['annotations']
+        if len(annotations) == 0:
+            continue
+        count += 1
+    return count
+
+def get_examples_count_stage2(images_info, images_path):
     count = 0
     # for image
     for image_info in images_info:
@@ -79,9 +99,6 @@ def get_examples_count(images_info, images_path):
         annotations = image_info['annotations']
         if len(annotations) == 0:
             continue
-        im_id = image_info['id']
-        #if im_id > 126887 and im_id < 132287:
-        #    continue
         count += 1
     return count
 

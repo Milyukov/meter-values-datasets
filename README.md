@@ -20,6 +20,23 @@ git branch -M main
 git push -uf origin main
 ```
 
+Чтобы сгенерировать данные для обучения первой стадии:
+
+1. Установите DVC
+2. Скачайте изображения в папку ./meter_values_dataset_stage1/stage1
+3. Экспортируйте разметку в формате json с сайта Label-studio
+4. Копируйте файл разметки в папку ./meter_values_dataset_stage1 и переименуйте в labels.json
+5. Чтобы сгенерировать датасет в формате tf.data для обучения первой стадии, в терминале в папке ./meter_values_dataset_stage1 запустите dvc repro
+
+Чтобы сгенерировать данные для обучения второй стадии:
+
+1. Подготовка изображений для обучения второй стадии
+1.1 Скачайте изображения в папку ./meter_values_dataset_stage2/stage2 если они уже существуют
+1.2 Чтобы сгенерировать изображения для обучения второй стадии, используя разметку первой стадии, запустите в корне репозитория dvc repro
+2. Экспортируйте разметку в формате json с сайта Label-studio
+3. Копируйте файл разметки в папку ./meter_values_dataset_stage2 и переименуйте в labels.json
+4. Чтобы сгенерировать датасет в формате tf.data для обучения второй стадии, в терминале в папке ./meter_values_dataset_stage2 запустите dvc repro
+
 ## Integrate with your tools
 
 - [ ] [Set up project integrations](https://gitlab.infobot.pro/cv/counters-datasets/-/settings/integrations)

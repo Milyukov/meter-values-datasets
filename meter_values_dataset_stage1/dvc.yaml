@@ -6,5 +6,6 @@ stages:
     - ../utils.py
     - meter_values_dataset_stage1_dataset_builder.py
     - stage1
+    - labels.json
     outs:
     - meter_values_dataset_stage1/Default/1.0.0/
