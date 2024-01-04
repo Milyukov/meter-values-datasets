@@ -9,6 +9,9 @@ import yaml
 import tqdm
 
 from random import shuffle
+from random import seed
+
+seed(1)
 
 def get_images_info(input_path, shuffle_list=True):
     images_info = []
@@ -25,8 +28,7 @@ def generate_examples_stage1(images_info, images_path, width, height):
         if 'file_upload' in image_info:
             image_filename = image_info['file_upload'].split('-')[-1]
         else:
-            prefix = 's3://datasets-counters/'
-            image_filename = image_info['data']['image'][len(prefix):]
+            image_filename = '/'.join(image_info['data']['image'].split('//')[1].split('/')[1:])
         image_path = os.path.join(images_path, image_filename)
         # to deal with Unicode:
         if not os.path.exists(image_path):
@@ -120,9 +122,6 @@ def generate_examples_stage2(images_info, images_path, width=None, height=None):
             continue
         # read keypoints
         annotations = image_info['annotations']
-        im_id = image_info['id']
-        #if im_id > 126887 and im_id < 132287:
-        #    continue
         bboxes = []
         labels = []
         for field in annotations:

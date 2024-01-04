@@ -8,6 +8,9 @@ import process_labels_label_studio
 
 from dataclasses import dataclass, field
 
+from collections import OrderedDict
+from utils import augment_data_stage2
+
 @dataclass
 class MyDatasetConfig(tfds.core.BuilderConfig):
   width: int = 0
@@ -25,6 +28,8 @@ class Builder(tfds.core.GeneratorBasedBuilder):
   Some description here
   """
 
+  DO_AUGMENT = True
+
   VERSION = tfds.core.Version('1.0.0')
   RELEASE_NOTES = {
       '1.0.0': 'Initial release.',
@@ -34,6 +39,29 @@ class Builder(tfds.core.GeneratorBasedBuilder):
       MyDatasetConfig(name='Default', width=800, height=800, 
                       partition={'train': 0.8, 'test': 0.1, 'val': 0.1}),
   ]
+
+  str2int = OrderedDict([
+      ('0', 0),
+      ('1', 1),
+      ('2', 2),
+      ('3', 3),
+      ('4', 4),
+      ('5', 5),
+      ('6', 6),
+      ('7', 7),
+      ('8', 8),
+      ('9', 9),
+      ('r', 10),
+      ('t', 11),
+      ('m', 12),
+      ('_', 13),
+      ('floatp', 14),
+      ('colon', 15),
+      ('arrow', 16),
+      ('q', 17),
+      ('v', 18),
+      ('u', 19)
+  ])
 
   def _info(self) -> tfds.core.DatasetInfo:
     """Returns the dataset metadata."""
@@ -83,30 +111,36 @@ class Builder(tfds.core.GeneratorBasedBuilder):
         'test': self._generate_examples(max_samples_test),
     }
 
+  def _prepare_output(self, im, labels, bboxes, image_filename, index):
+    bbox_features = []
+    label_features = []
+    areas = []
+    height, width, _ = im.shape
+    for bbox, label in zip(bboxes, labels):
+      bbox_features.append(tfds.features.BBox(
+        ymin=bbox[1] / height,
+        xmin=bbox[0] / width,
+        ymax=(bbox[1] + bbox[3]) / height,
+        xmax=(bbox[0] + bbox[2]) / width)
+      )
+      areas.append(bbox[2] * bbox[3])
+      label_features.append(self.str2int[label.lower()])
+    output = {
+        'image': im.astype(np.uint8),
+        'image/filename': image_filename,
+        'image/id': index,
+        'objects': {
+          'area': areas,
+          'bbox': bbox_features,
+          'id': [0] * len(bbox_features),
+          'is_crowd': [False] * len(bbox_features),
+          'label': label_features
+        }
+    }
+    return output
+
   def _generate_examples(self, max_samples):
     """Yields examples."""
-    # TODO(meter_values_dataset_stage2): Yields (key, example) tuples from the dataset
-    partition = 0.5
-    # TODO: change labels to stage 2
-    str2int = {
-      '0': 0,
-      '1': 1,
-      '2': 2,
-      '3': 3,
-      '4': 4,
-      '5': 5,
-      '6': 6,
-      '7': 7,
-      '8': 8,
-      '9': 9,
-      'r': 10,
-      't': 11,
-      'm': 12,
-      '_': 13,
-      'floatp': 14,
-      'colon': 15,
-      'arrow': 16
-    }
 
     index = 0
     while index < max_samples:
@@ -117,29 +151,14 @@ class Builder(tfds.core.GeneratorBasedBuilder):
         return
       index += 1
       
-      bbox_features = []
-      label_features = []
-      areas = []
-      height, width, _ = im.shape
-      for bbox, label in zip(bboxes, labels):
-        bbox_features.append(tfds.features.BBox(
-          ymin=bbox[1] / height,
-          xmin=bbox[0] / width,
-          ymax=(bbox[1] + bbox[3]) / height,
-          xmax=(bbox[0] + bbox[2]) / width)
-        )
-        areas.append(bbox[2] * bbox[3])
-        label_features.append(str2int[label.lower()])
-      
-      yield index, {
-          'image': im.astype(np.uint8),
-          'image/filename': image_filename,
-          'image/id': index,
-          'objects': {
-            'area': areas,
-            'bbox': bbox_features,
-            'id': [0] * len(bbox_features),
-            'is_crowd': [False] * len(bbox_features),
-            'label': label_features
-          }
-      }
+      if self.DO_AUGMENT:
+        for index in range(2):
+          im_augmented, labels_augmented, bboxes_augmented = augment_data_stage2(
+            im, labels, bboxes)
+          output = self._prepare_output(
+            im_augmented, labels_augmented, bboxes_augmented, image_filename, index)
+          yield index, output
+      output = self._prepare_output(
+        im, labels, bboxes, image_filename, index)
+
+      yield index, output

@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import random
 
 def resize_image_keypoints(im, keypoints, width, height):
     h, w, c = im.shape
@@ -99,6 +100,12 @@ def process_keypoints(im, keypoints, width, height):
 
 def process_bboxes(im, bboxes, width, height):
     # resize image and bboxes
+    h_orig = 2 * im.shape[0] // 7
+    x_extend = h_orig // 2
+    y_extend = 2 * h_orig // 3
+    im = im[y_extend:-y_extend, x_extend:-x_extend, :]
+    for index, bbox in enumerate(bboxes):
+        bboxes[index] = [bbox[0] - x_extend, bbox[1] - y_extend, bbox[2], bbox[3]]
     im_resized, bboxes_resized = resize_image_bboxes(im, bboxes, width, height)
     return im_resized, bboxes_resized 
 
@@ -158,3 +165,49 @@ def extract_rectangle_area(im_resized, bbox, keypoints):
     #im_dst = cv2.cvtColor(im_dst, cv2.COLOR_BGR2GRAY)
     #im_dst_eq = cv2.equalizeHist(im_dst)
     return im_dst
+
+def augment_data_stage2(im, labels, bboxes):
+    choice = random.choice([0, 1])
+    im_augmented = im.copy()
+    labels_augmented = [label for label in labels]
+    bboxes_augmented = bboxes.copy()
+    # randomly do one of the following augmentations:
+    # rotation
+    if choice == 0:
+        angle = (random.random() - 0.5) * 45
+        # using cv2.getRotationMatrix2D() to get the rotation matrix
+        height, width = im_augmented.shape[:2]
+        center = (width // 2, height // 2)
+        rotate_matrix = cv2.getRotationMatrix2D(center=center, angle=angle, scale=1)
+        # rotate the image using cv2.warpAffine
+        im_augmented = cv2.warpAffine(src=im_augmented, M=rotate_matrix, dsize=(width, height))
+        for index, box in enumerate(bboxes_augmented):
+            lu = box[:2]
+            ru = box[:2] + np.array([box[2], 0])
+            rb = box[:2] + box[2:]
+            lb = box[:2] + np.array([0, box[3]])
+            lu_hom = np.concatenate((lu, np.ones((1,))))
+            ru_hom = np.concatenate((ru, np.ones((1,))))
+            rb_hom = np.concatenate((rb, np.ones((1,))))
+            lb_hom = np.concatenate((lb, np.ones((1,))))
+            lu_rot = rotate_matrix.dot(lu_hom)
+            #lu_rot = lu_rot[:2] / lu_rot[2]
+            ru_rot = rotate_matrix.dot(ru_hom)
+            #ru_rot = ru_rot[:2] / ru_rot[2]
+            rb_rot = rotate_matrix.dot(rb_hom)
+            #rb_rot = rb_rot[:2] / rb_rot[2]
+            lb_rot = rotate_matrix.dot(lb_hom)
+            #lb_rot = lb_rot[:2] / lb_rot[2]
+            minx = int(np.min([lu_rot[0], ru_rot[0], rb_rot[0], lb_rot[0]]))
+            maxx = int(np.max([lu_rot[0], ru_rot[0], rb_rot[0], lb_rot[0]]))
+            miny = int(np.min([lu_rot[1], ru_rot[1], rb_rot[1], lb_rot[1]]))
+            maxy = int(np.max([lu_rot[1], ru_rot[1], rb_rot[1], lb_rot[1]]))
+            bboxes_augmented[index] = np.array([minx, miny, maxx-minx, maxy-miny], dtype=int)
+    # scaling
+    elif choice == 1:
+        scale = 1.0 + (random.random() - 0.5)
+        im_augmented = cv2.resize(im, (int(im.shape[0] * scale), int(im.shape[1] * scale)))
+        for index, box in enumerate(bboxes_augmented):
+            bboxes_augmented[index] = (box * scale).astype(np.int32)
+
+    return im_augmented, labels_augmented, bboxes_augmented
